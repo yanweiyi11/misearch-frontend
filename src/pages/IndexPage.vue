@@ -1,7 +1,7 @@
 <template>
   <div class="index-page">
     <a-input-search
-      v-model:value="searchParams.search"
+      v-model:value="searchParams.searchText"
       placeholder="请输入搜索文本"
       enter-button="搜索"
       size="large"
@@ -13,10 +13,10 @@
         <PostList :postList="postList" />
       </a-tab-pane>
       <a-tab-pane key="picture" tab="图片">
-        <PictureList />
+        <PictureList :pictureList="pictureList" />
       </a-tab-pane>
       <a-tab-pane key="user" tab="用户">
-        <UserList :userList="userList"/>
+        <UserList :userList="userList" />
       </a-tab-pane>
     </a-tabs>
   </div>
@@ -30,29 +30,39 @@ import PictureList from "@/components/PictureList.vue";
 import MyDivider from "@/components/MyDivider.vue";
 import { useRoute, useRouter } from "vue-router";
 import mxios from "@/plugins/mxios";
+import {post} from "axios";
+
+blur()
 
 const postList = ref([]);
 const userList = ref([]);
-
-mxios.post("/post/list/page/vo", {}).then((res: any) => {
-  postList.value = res.records;
-});
-
-mxios.post("/user/list/page/vo", {}).then((res: any) => {
-  userList.value = res.records;
-});
+const pictureList = ref([]);
 
 const router = useRouter();
 const route = useRoute();
 const activeKey = route.params.category;
 
-const initSearchParams = { search: "", pageSize: 10, pageNum: 1 };
+const initSearchParams = { searchText: "", pageSize: 10, pageNum: 1 };
 const searchParams = ref(initSearchParams);
+
+/**
+ * 加载数据
+ * @param params
+ */
+const loadData = (params: any) => {
+  mxios.post("search/all", params).then((res:any)=>{
+    postList.value = res.postList;
+    pictureList.value = res.pictureList;
+    userList.value = res.userList;
+  })
+};
+// 首次请求
+loadData(initSearchParams);
 
 watchEffect(() => {
   searchParams.value = {
     ...initSearchParams,
-    search: route.query.search,
+    searchText: route.query.searchText,
   } as any;
 });
 
@@ -60,6 +70,7 @@ const onSearch = (value: string) => {
   router.push({
     query: searchParams.value,
   });
+  loadData(searchParams.value);
 };
 
 const onTabChange = (key: string) => {
