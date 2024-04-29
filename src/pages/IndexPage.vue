@@ -1,14 +1,14 @@
 <template>
   <div class="index-page">
     <a-input-search
-      v-model:value="searchParams.searchText"
+      v-model:value="searchText"
       placeholder="请输入搜索文本"
       enter-button="搜索"
       size="large"
       @search="onSearch"
     />
     <MyDivider />
-    <a-tabs v-model:activeKey="activeKey" @change="onTabChange">
+    <a-tabs v-model:activeKey="currentTab" @change="onTabChange">
       <a-tab-pane key="post" tab="文章">
         <PostList :postList="postList" />
       </a-tab-pane>
@@ -24,55 +24,84 @@
 
 <script setup lang="ts">
 import { ref, watchEffect } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import mxios from "@/plugins/mxios";
+import { message } from "ant-design-vue";
+
 import PostList from "@/components/PostList.vue";
 import UserList from "@/components/UserList.vue";
 import PictureList from "@/components/PictureList.vue";
 import MyDivider from "@/components/MyDivider.vue";
-import { useRoute, useRouter } from "vue-router";
-import mxios from "@/plugins/mxios";
-import {post} from "axios";
 
-blur()
-
+// 引用数据列表
 const postList = ref([]);
 const userList = ref([]);
 const pictureList = ref([]);
 
+// 路由和路由参数
 const router = useRouter();
 const route = useRoute();
-const activeKey = route.params.category;
+const currentTab = ref(route.params.category as string);
 
-const initSearchParams = { searchText: "", pageSize: 10, pageNum: 1 };
-const searchParams = ref(initSearchParams);
+// 初始化搜索参数
+const initialSearchParams = {
+  type: currentTab.value,
+  searchText: "",
+  pageSize: 10,
+  pageNum: 1,
+};
+
+// 实际搜索参数
+const searchParams = ref({ ...initialSearchParams });
+
+// 搜索文本
+const searchText = ref((route.query.searchText as string) || "");
 
 /**
  * 加载数据
+ *
  * @param params
  */
-const loadData = (params: any) => {
-  mxios.post("search/all", params).then((res:any)=>{
-    postList.value = res.postList;
-    pictureList.value = res.pictureList;
-    userList.value = res.userList;
-  })
-};
-// 首次请求
-loadData(initSearchParams);
+const fetchSearchData = async (params: any) => {
+  // 如果类型不存在则显示错误消息
+  if (!params.type) {
+    return message.error("请求错误，请重试");
+  }
 
+  // 发起搜索请求
+  mxios.post("search/all", params).then((res: any) => {
+    // 根据类型更新对应的数据列表
+    if (params.type === "post") {
+      postList.value = res.postList || res.dataList;
+    } else if (params.type === "user") {
+      userList.value = res.userList || res.dataList;
+    } else if (params.type === "picture") {
+      pictureList.value = res.pictureList || res.dataList;
+    }
+  });
+};
+
+// 监听路由变化并加载数据
 watchEffect(() => {
   searchParams.value = {
-    ...initSearchParams,
-    searchText: route.query.searchText,
-  } as any;
+    ...initialSearchParams,
+    searchText: route.query.searchText as string,
+    type: route.params.category as string,
+  };
+  fetchSearchData(searchParams.value);
 });
 
+// 处理搜索事件
 const onSearch = (value: string) => {
   router.push({
-    query: searchParams.value,
+    query: {
+      ...searchParams.value,
+      searchText: value,
+    },
   });
-  loadData(searchParams.value);
 };
 
+// 处理标签页改变事件
 const onTabChange = (key: string) => {
   router.push({
     path: `/${key}`,
