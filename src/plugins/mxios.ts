@@ -3,7 +3,7 @@ import { message } from "ant-design-vue";
 
 const mxios = axios.create({
   baseURL: "http://localhost:8101/api/",
-  timeout: 10000,
+  timeout: 120000,
   headers: {},
 });
 

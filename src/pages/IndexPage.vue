@@ -63,13 +63,14 @@ const searchText = ref((route.query.searchText as string) || "");
  * @param params
  */
 const fetchSearchData = async (params: any) => {
-  // 如果类型不存在则显示错误消息
-  if (!params.type) {
-    return message.error("请求错误，请重试");
-  }
-
   // 发起搜索请求
   mxios.post("search/all", params).then((res: any) => {
+    if (!params.type) {
+      postList.value = res.postList;
+      userList.value = res.userList;
+      pictureList.value = res.pictureList;
+      return
+    }
     // 根据类型更新对应的数据列表
     if (params.type === "post") {
       postList.value = res.postList || res.dataList;
