@@ -1,28 +1,32 @@
 <script setup lang="ts">
-import { withDefaults, defineProps } from "vue";
-import * as https from "https";
-import ikun from "@/assets/ikun.png";
+import { defineProps, withDefaults } from "vue";
+import { Page } from "../../generated";
 
 interface Props {
-  userList: any[];
+  userPage: Page;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  userList: () => [],
+  userPage: () => ({}),
 });
 </script>
 
 <template>
-  <a-list item-layout="horizontal" :data-source="props.userList">
+  <a-list
+    :grid="{ gutter: 2, column: 4 }"
+    :data-source="props.userPage.records"
+  >
     <template #renderItem="{ item }">
-      <a-card hoverable style="width: 240px">
-        <template #cover>
-          <img alt="example" :src="item.userAvatar" />
-        </template>
-        <a-card-meta :title="item.userName">
-          <template #description>{{ item.userProfile }}</template>
-        </a-card-meta>
-      </a-card>
+      <a-list-item>
+        <a-card hoverable>
+          <template #cover>
+            <img :alt="item.userName" :src="item.userAvatar" />
+          </template>
+          <a-card-meta :title="item.userName">
+            <template #description>{{ item.userProfile }}</template>
+          </a-card-meta>
+        </a-card>
+      </a-list-item>
     </template>
   </a-list>
 </template>

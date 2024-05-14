@@ -9,11 +9,21 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
+    "@bytemd/plugin-breaks": "^1.21.0",
+    "@bytemd/plugin-frontmatter": "^1.21.0",
+    "@bytemd/plugin-gemoji": "^1.21.0",
+    "@bytemd/plugin-gfm": "^1.21.0",
+    "@bytemd/plugin-highlight": "^1.21.0",
+    "@bytemd/plugin-math": "^1.21.0",
+    "@bytemd/plugin-medium-zoom": "^1.21.0",
+    "@bytemd/vue-next": "^1.21.0",
     "ant-design-vue": "^4.2.1",
     "axios": "^1.6.8",
     "core-js": "^3.8.3",
+    "moment": "^2.30.1",
     "vue": "^3.2.13",
-    "vue-router": "^4.0.3"
+    "vue-router": "^4.0.3",
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.4.0",
@@ -26,6 +36,7 @@
     "@vue/eslint-config-typescript": "^9.1.0",
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.0.3",
+    "openapi-typescript-codegen": "^0.29.0",
     "typescript": "~4.5.5"
   }
 }

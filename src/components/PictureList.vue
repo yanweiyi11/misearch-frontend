@@ -1,24 +1,26 @@
 <script setup lang="ts">
-import { withDefaults, defineProps } from "vue";
+import { defineProps, withDefaults } from "vue";
+import unloaded_image from "@/assets/unloaded_image.png";
+import { Page } from "../../generated";
 
 interface Props {
-  pictureList: any[];
+  picturePage: Page;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  pictureList: () => [],
+  picturePage: () => ({}),
 });
 </script>
 
 <template>
-  <a-list :grid="{ gutter: 16, xs: 1, sm: 2, md: 4, lg: 4, xl: 6, xxl: 3 }" :data-source="props.pictureList">
+  <a-list :grid="{ gutter: 6, column: 3 }" :data-source="props.picturePage.records">
     <template #renderItem="{ item }">
       <a-list-item>
         <a-card hoverable>
           <template #cover>
-            <img :src="item.url" />
+            <a-image :src="item.url" :fallback="unloaded_image" />
           </template>
-          <a-card-meta :title="item.title"/>
+          <a-card-meta :title="item.title" />
         </a-card>
       </a-list-item>
     </template>
