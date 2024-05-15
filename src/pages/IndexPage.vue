@@ -30,16 +30,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ResourceType } from "@/enums/ResourceType";
 import { SearchControllerService, SearchRequest } from "../../generated";
-import { message } from "ant-design-vue";
+import { message, notification } from "ant-design-vue";
+import store from "@/store";
 import MyDivider from "@/components/MyDivider.vue";
 import PostList from "@/components/PostList.vue";
 import PictureList from "@/components/PictureList.vue";
 import UserList from "@/components/UserList.vue";
-import store from "@/store";
 
 // 引用数据列表
 const postPage = ref({});
@@ -49,7 +49,7 @@ const userPage = ref({});
 // 搜索文本
 const searchText = ref("");
 
-// 请求参数，包含当前页码、页面大小和搜索文本
+// 请求参数
 const searchParams = ref<SearchRequest>({
   current: 1,
   pageSize: 10,
@@ -66,6 +66,30 @@ const route = useRoute();
 // 当前激活的标签页
 const currentTab = ref((route.params.category as string) || ResourceType.POST);
 
+// 当前登录用户
+const loginUser = computed(() => store.getters.user);
+
+// 登录提示通知
+const loginNotificationKey = "login-notification";
+const showLoginNotification = () => {
+  notification.open({
+    message: "登录提示",
+    description: "您当前未登录，请登录后再进行搜索操作。",
+    placement: "bottomRight",
+    key: loginNotificationKey,
+  });
+};
+const closeLoginNotification = () => notification.close(loginNotificationKey);
+
+// 根据登录状态显示或关闭登录提示
+watch(loginUser, (user) => {
+  if (user) {
+    closeLoginNotification();
+  } else {
+    showLoginNotification();
+  }
+});
+
 /**
  * 根据搜索类别和参数加载数据
  *
@@ -76,6 +100,9 @@ const fetchSearchData = async (
   searchCategory: string,
   params: SearchRequest
 ) => {
+  if (!loginUser.value) {
+    return;
+  }
   // 发起搜索请求
   const res = await SearchControllerService.doSearchUsingPost(
     searchCategory,
@@ -101,16 +128,27 @@ const fetchSearchData = async (
   }
 };
 
-// 搜索事件处理函数，触发数据加载并更新路由查询参数
+/**
+ * 搜索事件处理
+ * @param value
+ */
 const onSearch = (value: string) => {
+  // 更新路由查询参数
   searchParams.value.searchText = value;
-  router.push({ query: { ...searchParams.value, searchText: value } });
+  searchParams.value.current = 1;
+  router.push({ query: { ...searchParams.value } });
+  // 数据加载
   fetchSearchData(currentTab.value, searchParams.value);
 };
 
-// 标签页改变事件处理函数，重置页码并更新路由路径和查询参数
+/**
+ * 标签页变化处理
+ * @param tabName
+ */
 const onTabChange = (tabName: string) => {
+  // 重置页码
   searchParams.value.current = 1;
+  // 更新路由路径和查询参数
   router.push({ path: `/${tabName}`, query: searchParams.value });
 };
 
@@ -124,20 +162,7 @@ watch(
   { immediate: true }
 );
 
-// 监听用户登录状态
-watch(
-  () => store.getters.user,
-  (user) => {
-    // 如果当前用户为空，设置所有数据未空
-    if (!user) {
-      postPage.value = {};
-      picturePage.value = {};
-      userPage.value = {};
-    }
-  }
-);
-
-// 使用 onMounted 钩子函数来在组件挂载时更新 searchParams
+// 组件挂载时更新搜索参数
 // 防止直接访问如：/post?current=3&pageSize=10 的网站时，虽然 current=3，但还是会访问第一页
 onMounted(() => {
   const query = route.query;
@@ -148,18 +173,46 @@ onMounted(() => {
     ? parseInt(query.pageSize as string)
     : 10;
   searchParams.value.searchText = (query.searchText as string) || "";
+
+  // 在开始时，检查登录状态，判断是否需要弹出登录提示
+  if (!loginUser.value) {
+    showLoginNotification();
+  }
 });
 
-// 页码改变事件处理函数，更新路由查询参数并加载数据，之后滚动到页面顶部
+// 页码变化处理
 const changePage = (page: number, pageSize: number) => {
+  // 更新路由查询参数
   searchParams.value.current = page;
   searchParams.value.pageSize = pageSize;
-  router.push({
-    query: { ...searchParams.value, current: page, pageSize: pageSize },
-  });
+  router.push({ query: searchParams.value });
+  // 加载数据
   fetchSearchData(currentTab.value, searchParams.value);
+  // 滚动到页面顶部
   window.scrollTo(0, 0);
 };
+
+// 用户登录状态变化处理
+watch(
+  () => store.getters.user,
+  (user) => {
+    // 用户不存在
+    if (!user) {
+      // 清空数据列表
+      postPage.value = {};
+      picturePage.value = {};
+      userPage.value = {};
+      total.value = 1;
+      // 重置分页数据
+      searchParams.value = {
+        ...searchParams.value,
+        current: 1,
+        pageSize: 10,
+        searchText: "",
+      };
+    }
+  }
+);
 </script>
 
 <style scoped>

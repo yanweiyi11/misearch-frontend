@@ -26,9 +26,7 @@ const handleLogout = async () => {
           <a-space size="small">
             <a-avatar :src="loginUser.userAvatar" :alt="loginUser.userName" />
             <span class="username">{{ loginUser.userName }}</span>
-            <a-button type="text" style="color: #bfbfbf" @click="handleLogout"
-              >登出</a-button
-            >
+            <a-button type="text" style="color: #bfbfbf" @click="handleLogout">登出</a-button>
           </a-space>
         </template>
         <template v-else>

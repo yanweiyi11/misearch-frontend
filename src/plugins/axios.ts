@@ -13,7 +13,6 @@ axios.interceptors.request.use(
 // 全局响应拦截器
 axios.interceptors.response.use(
   function (response) {
-    console.log(`response：${response}`);
     return response;
   },
   function (error) {
