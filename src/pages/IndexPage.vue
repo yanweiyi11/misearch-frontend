@@ -39,6 +39,7 @@ import MyDivider from "@/components/MyDivider.vue";
 import PostList from "@/components/PostList.vue";
 import PictureList from "@/components/PictureList.vue";
 import UserList from "@/components/UserList.vue";
+import store from "@/store";
 
 // 引用数据列表
 const postPage = ref({});
@@ -93,6 +94,8 @@ const fetchSearchData = async (
       updateFunction();
       total.value = res.data.total;
     }
+  } else if (res.code === 40100) {
+    message.info("当前用户未登录");
   } else {
     message.error("加载失败，" + res.message);
   }
@@ -119,6 +122,19 @@ watch(
     fetchSearchData(currentTab.value, searchParams.value);
   },
   { immediate: true }
+);
+
+// 监听用户登录状态
+watch(
+  () => store.getters.user,
+  (user) => {
+    // 如果当前用户为空，设置所有数据未空
+    if (!user) {
+      postPage.value = {};
+      picturePage.value = {};
+      userPage.value = {};
+    }
+  }
 );
 
 // 使用 onMounted 钩子函数来在组件挂载时更新 searchParams

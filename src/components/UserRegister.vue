@@ -15,7 +15,6 @@ const onFinish = async (values: UserRegisterRequest) => {
   const res = await UserControllerService.userRegisterUsingPost(values);
   if (res.code === 0) {
     message.success("注册成功");
-    location.href = "/#/user/login";
   } else {
     message.error("注册失败，" + res.message);
   }
@@ -35,9 +34,9 @@ const onFinish = async (values: UserRegisterRequest) => {
         :style="{ marginTop: '20px' }"
       >
         <a-form-item
-            label="账号"
-            name="userAccount"
-            :rules="[{ required: true, message: '请输入账号' }]"
+          label="账号"
+          name="userAccount"
+          :rules="[{ required: true, message: '请输入账号' }]"
         >
           <a-input v-model:value="formState.userAccount" />
         </a-form-item>

@@ -14,6 +14,8 @@ const loadData = async () => {
   );
   if (res.code === 0) {
     post.value = res.data;
+  } else if (res.code === 40100) {
+    message.info("当前用户未登录");
   } else {
     message.error("加载数据失败，" + res.message);
   }
@@ -40,6 +42,7 @@ onMounted(() => {
 ::v-deep(.medium-zoom-image) {
   max-width: 93vh;
 }
+
 #post-content {
   max-width: 1024px;
   margin: 0 auto;

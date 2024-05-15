@@ -1,7 +1,6 @@
 import { createStore } from "vuex";
 import { User, UserControllerService } from "../../generated";
 import { message } from "ant-design-vue";
-import { useRoute, useRouter } from "vue-router";
 import router from "@/router";
 
 // 定义 State 接口
@@ -45,7 +44,11 @@ export default createStore<State>({
         commit("setUser", res.data);
         localStorage.setItem("user", JSON.stringify(res.data));
         // 跳转到主页
-        location.href = "/#/";
+        router.push("/").catch((err) => {
+          if (err.name !== "NavigationDuplicated") {
+            router.go(0);
+          }
+        });
         message.success("登陆成功");
       } else {
         message.error("登陆失败，" + res.message);
@@ -58,9 +61,13 @@ export default createStore<State>({
       if (res.code === 0) {
         // 登出成功，清除用户信息
         commit("setUser", null);
-        localStorage.removeItem('user');
+        localStorage.clear();
         // 跳转到主页
-        location.href = "/#/";
+        router.push("/").catch((err) => {
+          if (err.name !== "NavigationDuplicated") {
+            router.go(0);
+          }
+        });
         message.success("登出成功");
       } else {
         message.error("登出失败，" + res.message);
